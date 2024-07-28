@@ -18,6 +18,13 @@ document.getElementById("loginButton").addEventListener("click", () => {
     });
 });
 
+document.getElementById("addWordButton").addEventListener("click", () => {
+    const newWord = document.getElementById("newWord").value.trim();
+    if (newWord) {
+        addWord(newWord);
+    }
+});
+
 document.addEventListener("DOMContentLoaded", async () => {
     try {
         await handleRedirect();
@@ -158,6 +165,14 @@ function updateWordList(words) {
         li.appendChild(deleteButton);
         wordList.appendChild(li);
     });
+}
+
+function addWord(word) {
+    let highlightWords = JSON.parse(localStorage.getItem("highlightWords")) || [];
+    highlightWords.push(word);
+    localStorage.setItem("highlightWords", JSON.stringify(highlightWords));
+    updateWordList(highlightWords);
+    saveWordsToOneDrive(highlightWords);
 }
 
 function removeWord(word) {
