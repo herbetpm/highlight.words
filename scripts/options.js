@@ -19,15 +19,19 @@ document.getElementById("loginButton").addEventListener("click", () => {
 });
 
 document.addEventListener("DOMContentLoaded", async () => {
-    await handleRedirect();
-    chrome.storage.local.get("highlightWords", ({ highlightWords }) => {
-        if (chrome.runtime.lastError) {
-            console.error(chrome.runtime.lastError);
-            return;
-        }
-        highlightWords = highlightWords || [];
-        updateWordList(highlightWords);
-    });
+    try {
+        await handleRedirect();
+        chrome.storage.local.get("highlightWords", ({ highlightWords }) => {
+            if (chrome.runtime.lastError) {
+                console.error(chrome.runtime.lastError);
+                return;
+            }
+            highlightWords = highlightWords || [];
+            updateWordList(highlightWords);
+        });
+    } catch (error) {
+        console.error("Error during DOMContentLoaded:", error);
+    }
 });
 
 async function handleRedirect() {
@@ -132,15 +136,19 @@ async function loadWordsFromOneDrive() {
 }
 
 async function syncWords() {
-    const words = await loadWordsFromOneDrive();
-    if (!Array.isArray(words)) {
-        console.log("No words found in OneDrive, initializing empty array");
-        words = [];
+    try {
+        let words = await loadWordsFromOneDrive();
+        if (!Array.isArray(words)) {
+            console.log("No words found in OneDrive, initializing empty array");
+            words = [];
+        }
+        chrome.storage.local.set({ highlightWords: words }, () => {
+            console.log("Words synced to local storage.");
+            updateWordList(words);
+        });
+    } catch (error) {
+        console.error("Error syncing words:", error);
     }
-    chrome.storage.local.set({ highlightWords: words }, () => {
-        console.log("Words synced to local storage.");
-        updateWordList(words);
-    });
 }
 
 function updateWordList(words) {
