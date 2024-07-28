@@ -21,14 +21,8 @@ document.getElementById("loginButton").addEventListener("click", () => {
 document.addEventListener("DOMContentLoaded", async () => {
     try {
         await handleRedirect();
-        chrome.storage.local.get("highlightWords", ({ highlightWords }) => {
-            if (chrome.runtime.lastError) {
-                console.error(chrome.runtime.lastError);
-                return;
-            }
-            highlightWords = highlightWords || [];
-            updateWordList(highlightWords);
-        });
+        const highlightWords = JSON.parse(localStorage.getItem("highlightWords")) || [];
+        updateWordList(highlightWords);
     } catch (error) {
         console.error("Error during DOMContentLoaded:", error);
     }
@@ -142,10 +136,9 @@ async function syncWords() {
             console.log("No words found in OneDrive, initializing empty array");
             words = [];
         }
-        chrome.storage.local.set({ highlightWords: words }, () => {
-            console.log("Words synced to local storage.");
-            updateWordList(words);
-        });
+        localStorage.setItem("highlightWords", JSON.stringify(words));
+        updateWordList(words);
+        console.log("Words synced to local storage.");
     } catch (error) {
         console.error("Error syncing words:", error);
     }
@@ -168,11 +161,9 @@ function updateWordList(words) {
 }
 
 function removeWord(word) {
-    chrome.storage.local.get('highlightWords', ({ highlightWords }) => {
-        highlightWords = highlightWords.filter(w => w !== word);
-        chrome.storage.local.set({ highlightWords }, () => {
-            updateWordList(highlightWords);
-            saveWordsToOneDrive(highlightWords);
-        });
-    });
+    let highlightWords = JSON.parse(localStorage.getItem("highlightWords")) || [];
+    highlightWords = highlightWords.filter(w => w !== word);
+    localStorage.setItem("highlightWords", JSON.stringify(highlightWords));
+    updateWordList(highlightWords);
+    saveWordsToOneDrive(highlightWords);
 }
